@@ -22,7 +22,7 @@ describe Raygun::Runner do
 
   describe ".source_root" do
     it "points to the app_prototype directory" do
-      Raygun::Runner.source_root.should == File.expand_path("../../../../app_prototype", __FILE__)
+      Raygun::Runner.source_root.should == File.expand_path("../../../../rails_32", __FILE__)
     end
   end
 
