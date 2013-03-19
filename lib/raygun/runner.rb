@@ -64,28 +64,24 @@ module Raygun
       def print_next_steps
         say "Done! Next steps..."
 
-        say <<-NEXT_STEPS.gsub(/^\s+/, '')
-          # Install updated dependencies
-          $ cd #{destination_path.to_s}
-          $ gem install bundler
-          $ bundle update
-        NEXT_STEPS
+        say <<-NEXT_STEPS
 
-        say <<-NEXT_STEPS.gsub(/^\s+/, '')
-          # Prepare the database: schema and reference / sample data
-          $ rake db:setup db:sample_data
-        NEXT_STEPS
+# Install updated dependencies
+$ cd #{destination_path.to_s}
+$ gem install bundler
+$ bundle update
 
-        say <<-NEXT_STEPS.gsub(/^\s+/, '')
-          # Run the specs (they should all pass)
-          $ rake
-        NEXT_STEPS
+# Prepare the database: schema and reference / sample data
+$ rake db:setup db:sample_data
 
-        say <<-NEXT_STEPS.gsub(/^\s+/, '')
-          # Run the app and check things out
-          $ foreman start
-          $ open http://0.0.0.0:3000
-        NEXT_STEPS
+# Run the specs (they should all pass)
+$ rake
+
+# Run the app and check things out
+$ foreman start
+$ open http://0.0.0.0:3000
+
+NEXT_STEPS
 
         say "Enjoy your Carbon Five flavored Rails application!"
       end
@@ -146,6 +142,7 @@ module Raygun
     end
 
     private
+
     def ruby_version_path
       Pathname.new(File.expand_path('../../../.ruby-version', __FILE__))
     end
