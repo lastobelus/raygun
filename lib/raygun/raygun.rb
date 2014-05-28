@@ -13,9 +13,9 @@ module Raygun
     CARBONFIVE_REPO = 'carbonfive/raygun-rails'
 
     attr_accessor :target_dir, :app_dir, :app_name, :dash_name, :snake_name, :camel_name, :title_name, :prototype_repo,
-                  :current_ruby_version, :current_ruby_patch_level
+                  :gitlab_endpoint, :current_ruby_version, :current_ruby_patch_level
 
-    def initialize(target_dir, prototype_repo)
+    def initialize(target_dir, prototype_repo, gitlab_endpoint)
       @target_dir     = target_dir
       @app_dir        = File.expand_path(target_dir.strip.to_s)
       @app_name       = File.basename(app_dir).gsub(/\s+/, '-')
@@ -24,6 +24,7 @@ module Raygun
       @camel_name     = camelize(snake_name)
       @title_name     = titleize(snake_name)
       @prototype_repo = prototype_repo
+      @gitlab_endpoint = gitlab_endpoint
 
       @current_ruby_version     = RUBY_VERSION
       @current_ruby_patch_level = if RUBY_VERSION < '2.1.0' # Ruby adopted semver starting with 2.1.0.
@@ -40,7 +41,42 @@ module Raygun
       end
     end
 
+
+    def gitlab?
+      !!@gitlab_endpoint
+    end
+    
+    def gitlab_client
+      @gitlab_client ||= GitlabClient.new(gitlab_endpoint)
+    end
+    
+    def gitlab_project_id
+      @gitlab_project_id ||= parse_gitlab_project_id
+    end
+    
+    def parse_gitlab_project_id
+      if prototype_repo.to_i == prototype_repo
+        prototype_repo
+      else
+        
+      end
+    end
+    
     def fetch_prototype
+      if gitlab?
+        fetch_prototype_from_gitlab
+      else
+        fetch_prototype_from_github
+      end
+    end
+    
+    def fetch_prototype_from_gitlab
+      print "Checking for the latest application prototype...".colorize(:yellow)
+      
+      $stdout.flush
+    end
+    
+    def fetch_prototype_from_github
       print "Checking for the latest application prototype...".colorize(:yellow)
       $stdout.flush
 
@@ -204,6 +240,7 @@ module Raygun
 
     protected
 
+    
     # Fetch the tags for the repo (e.g. 'carbonfive/raygun-rails') and return the latest as JSON.
     def fetch_latest_tag(repo)
       url          = "https://api.github.com/repos/#{repo}/tags"
@@ -279,6 +316,7 @@ module Raygun
       options = OpenStruct.new
       options.target_dir     = nil
       options.prototype_repo = CARBONFIVE_REPO
+      options.gitlab_endpoint = nil
 
       parser = OptionParser.new do |opts|
         opts.banner = "Usage: raygun [options] NEW_APP_DIRECTORY"
@@ -289,6 +327,13 @@ module Raygun
         opts.on('-p', '--prototype [github_repo]', "Prototype github repo (e.g. carbonfive/raygun-rails).") do |prototype|
           options.prototype_repo = prototype
         end
+        opts.on('-g', '--gitlab [gitlab_endpoint]', "Gitlab instance where the prototype repo can be found.") do |gitlab|
+          gitlab ||= ENV['GITLAB_API_ENDPOINT']
+          if gitlab.nil? || gitlab.empty?
+            raise "--gitlab specified with no endpoint and $GITLAB_API_ENDPOINT was empty"
+          end
+          options.gitlab_endpoint = gitlab
+        end
       end
 
       begin
@@ -297,7 +342,7 @@ module Raygun
 
         raise OptionParser::InvalidOption if options.target_dir.nil?
 
-        raygun = Raygun::Runner.new(options.target_dir, options.prototype_repo)
+        raygun = Raygun::Runner.new(options.target_dir, options.prototype_repo, options.gitlab_endpoint)
 
       rescue OptionParser::InvalidOption
         usage_and_exit(parser)
