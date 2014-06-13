@@ -195,9 +195,12 @@ module Raygun
       puts
       puts "Raygun will create new app in directory:".colorize(:yellow) + " #{target_dir}".colorize(:yellow) + "...".colorize(:yellow)
       puts
-      puts "-".colorize(:blue) + " Application Name:".colorize(:light_blue) + " #{title_name}".colorize(:light_reen)
-      puts "-".colorize(:blue) + " Project Template:".colorize(:light_blue) + " #{prototype_repo}".colorize(:light_reen)
-      puts "-".colorize(:blue) + " Ruby Version:    ".colorize(:light_blue) + " #{@current_ruby_patch_level}".colorize(:light_reen)
+      puts "-".colorize(:blue) + " Application Name:".colorize(:light_blue) + " #{title_name}".colorize(:light_green)
+      if gitlab?
+        puts "-".colorize(:blue) + " Gitlab Endpoint: ".colorize(:light_blue) + " #{gitlab_endpoint}".colorize(:light_green)
+      end
+      puts "-".colorize(:blue) + " Project Template:".colorize(:light_blue) + " #{prototype_repo}".colorize(:light_green)
+      puts "-".colorize(:blue) + " Ruby Version:    ".colorize(:light_blue) + " #{@current_ruby_patch_level}".colorize(:light_green)
       puts
     end
 
@@ -333,6 +336,7 @@ module Raygun
             raise "--gitlab specified with no endpoint and $GITLAB_API_ENDPOINT was empty"
           end
           options.gitlab_endpoint = gitlab
+          puts "using gitlab_endpoint #{options.gitlab_endpoint}"
         end
       end
 
