@@ -1,5 +1,11 @@
 # Change Log
 
+## 0.10.1 [2014-06-12]
+
+* allow specifying a gitlab instance with -g
+* allow specifying a ref (branch or tag) with -r
+* allow specify embed_as (-e) to generate rails app in a subdir
+
 ## 0.9.4 [2014-02-11]
 
 * Don't use patchlevels with ruby v2.1.0+, now that ruby has adopted semantic versioning.

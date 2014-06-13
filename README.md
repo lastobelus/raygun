@@ -5,11 +5,11 @@
 
 Rails application generator that builds a new project skeleton from prototype app repos which can live either on github or a private gitlab instance.
 
-Raygun-gl generates Rails 4 projects by copying a sample app and massaging it gently into shape. It is a fork of https://github.com/carbonfive/raygun but does not supply an app prototype. Instead it allows you to use (your own) app prototype repos that are hosted either on github or a private gitlab instance. If you want to us Carbon Five's app prototype, raygun-gl does not provide any extra functionality over Carbon Five's original version (except for the `--embed_as` option)
+`raygun-gl` generates Rails 4 projects by copying a sample app and massaging it gently into shape. It is a fork of https://github.com/carbonfive/raygun but does not supply an app prototype. Instead it allows you to use (your own) app prototype repos that are hosted either on **github** or a private **gitlab** instance. If you want to use Carbon Five's app prototype, `raygun-gl` does not provide any extra functionality over Carbon Five's original version (except for the `--embed_as` option)
 
 ## Projects Goals
 
-Raygun GL...
+`raygun-gl`...
 
 * Generates a new rails application that's ready for immediate feature development.
 * Generates an application that has YOUR best practices that apply to most projects baked in.
