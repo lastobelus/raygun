@@ -7,6 +7,7 @@ require 'json'
 require 'colorize'
 
 require_relative 'version'
+require_relative 'gitlab_client'
 
 module Raygun
   class Runner
@@ -71,7 +72,9 @@ module Raygun
     end
     
     def fetch_prototype_from_gitlab
-      print "Checking for the latest application prototype...".colorize(:yellow)
+      require 'awesome_print'
+      print "Checking for the latest application prototype on gitlab...".colorize(:yellow)
+      ap gitlab_client
       
       $stdout.flush
     end

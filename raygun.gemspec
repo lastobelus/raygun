@@ -22,4 +22,5 @@ Gem::Specification.new do |gem|
   gem.require_paths = ["lib"]
   gem.add_dependency "gitlab", "~> 3"
   gem.add_development_dependency "pry"
+  gem.add_development_dependency "awesome_print"
 end
