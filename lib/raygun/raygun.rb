@@ -14,9 +14,9 @@ module Raygun
     CARBONFIVE_REPO = 'carbonfive/raygun-rails'
 
     attr_accessor :target_dir, :app_dir, :app_name, :dash_name, :snake_name, :camel_name, :title_name, :prototype_repo,
-                  :gitlab_endpoint, :current_ruby_version, :current_ruby_patch_level
+                  :gitlab_endpoint, :ref, :embed_as, :current_ruby_version, :current_ruby_patch_level
 
-    def initialize(target_dir, prototype_repo, gitlab_endpoint)
+    def initialize(target_dir, prototype_repo, gitlab_endpoint, ref, embed_as)
       @target_dir     = target_dir
       @app_dir        = File.expand_path(target_dir.strip.to_s)
       @app_name       = File.basename(app_dir).gsub(/\s+/, '-')
@@ -26,7 +26,13 @@ module Raygun
       @title_name     = titleize(snake_name)
       @prototype_repo = prototype_repo
       @gitlab_endpoint = gitlab_endpoint
-
+      @ref = ref
+      @embed_as = embed_as
+      if embed_as
+        FileUtils.mkdir_p(app_dir) unless File.exist?(app_dir)
+        @app_dir = File.join(app_dir, embed_as)
+      end
+      
       @current_ruby_version     = RUBY_VERSION
       @current_ruby_patch_level = if RUBY_VERSION < '2.1.0' # Ruby adopted semver starting with 2.1.0.
                                    "#{RUBY_VERSION}-p#{RUBY_PATCHLEVEL}"
@@ -70,14 +76,38 @@ module Raygun
         fetch_prototype_from_github
       end
     end
+
+    def cached_prototypes_dir; File.join(Dir.home, ".raygun"); end
     
     def fetch_prototype_from_gitlab
-      require 'awesome_print'
       print "Checking for the latest application prototype on gitlab...".colorize(:yellow)
-      ap gitlab_client
+      $stdout.flush
+      
+      latest_tag = ref || fetch_latest_tag_gitlab(prototype_repo)
+      
+      gitlab_cached_prototypes_dir = File.join(cached_prototypes_dir, gitlab_client.domain)
+      @prototype = File.join(gitlab_cached_prototypes_dir, "#{prototype_repo.sub('/', '--')}-#{latest_tag}.tar.gz")
+      
+      
+
+      if File.exists?(@prototype)
+        puts " Using cached version.".colorize(:yellow)
+      else
+        print " Downloading...".colorize(:yellow)
+        $stdout.flush
+
+        # Download the tarball and install in the cache.
+        Dir.mkdir(gitlab_cached_prototypes_dir, 0755) unless Dir.exists?(gitlab_cached_prototypes_dir)
+        tarball_url = URI([gitlab_endpoint, prototype_repo, "repository", "archive.tar.gz"].join('/'))
+        tarball_url.query = URI.encode_www_form(private_token: gitlab_client.token, ref: latest_tag)
+
+        shell "curl -s -L '#{tarball_url.to_s}' -o #{@prototype}"
+        puts " done!".colorize(:yellow)
+      end
       
       $stdout.flush
     end
+    
     
     def fetch_prototype_from_github
       print "Checking for the latest application prototype...".colorize(:yellow)
@@ -91,7 +121,6 @@ module Raygun
       print " #{latest_tag}.".colorize(:white)
       $stdout.flush
 
-      cached_prototypes_dir = File.join(Dir.home, ".raygun")
       @prototype = "#{cached_prototypes_dir}/#{prototype_repo.sub('/', '--')}-#{latest_tag}.tar.gz"
 
       # Do we already have the tarball cached under ~/.raygun?
@@ -181,8 +210,10 @@ module Raygun
     end
 
     def initialize_git
-      Dir.chdir(app_dir) do
-        shell "git init"
+      dir = app_dir
+      dir = File.join(dir, '..') if embed_as
+      Dir.chdir(dir) do
+        shell "git init" unless (embed_as && File.exist?('.git'))
         shell "git add -A ."
         shell "git commit -m 'Raygun-zapped skeleton.'"
       end
@@ -198,12 +229,18 @@ module Raygun
       puts
       puts "Raygun will create new app in directory:".colorize(:yellow) + " #{target_dir}".colorize(:yellow) + "...".colorize(:yellow)
       puts
-      puts "-".colorize(:blue) + " Application Name:".colorize(:light_blue) + " #{title_name}".colorize(:light_green)
+      puts "-".colorize(:blue) +   " Application Name:".colorize(:light_blue) + " #{title_name}".colorize(:light_green)
       if gitlab?
         puts "-".colorize(:blue) + " Gitlab Endpoint: ".colorize(:light_blue) + " #{gitlab_endpoint}".colorize(:light_green)
       end
-      puts "-".colorize(:blue) + " Project Template:".colorize(:light_blue) + " #{prototype_repo}".colorize(:light_green)
-      puts "-".colorize(:blue) + " Ruby Version:    ".colorize(:light_blue) + " #{@current_ruby_patch_level}".colorize(:light_green)
+      puts "-".colorize(:blue) +   " Project Template:".colorize(:light_blue) + " #{prototype_repo}".colorize(:light_green)
+      if ref
+        puts "-".colorize(:blue) + " Branch/Tag:      ".colorize(:light_blue) + " #{ref}".colorize(:light_green)
+      end
+      if embed_as
+        puts "-".colorize(:blue) + " Embed as:        ".colorize(:light_blue) + " #{embed_as}".colorize(:light_green)
+      end
+      puts "-".colorize(:blue) +   " Ruby Version:    ".colorize(:light_blue) + " #{@current_ruby_patch_level}".colorize(:light_green)
       puts
     end
 
@@ -292,6 +329,11 @@ module Raygun
       result
     end
 
+    def fetch_latest_tag_gitlab(repo)
+      puts "latest tag not implemented. Please supply a ref with -r".colorize(:red)
+      exit 1
+    end
+    
     def camelize(string)
       result = string.sub(/^[a-z\d]*/) { $&.capitalize }
       result.gsub(/(?:_|(\/))([a-z\d]*)/) { "#{$1}#{$2.capitalize}" }
@@ -339,7 +381,12 @@ module Raygun
             raise "--gitlab specified with no endpoint and $GITLAB_API_ENDPOINT was empty"
           end
           options.gitlab_endpoint = gitlab
-          puts "using gitlab_endpoint #{options.gitlab_endpoint}"
+        end
+        opts.on('-r', '--ref [branch-or-tag]', "Git ref on prototype-repo (defaults to 'greatest' tag).") do |ref|
+          options.ref = ref
+        end
+        opts.on('-e', '--embed [sub-dir-name]', "App is sub-dir in existing project.") do |embed_as|
+          options.embed_as = embed_as
         end
       end
 
@@ -349,7 +396,7 @@ module Raygun
 
         raise OptionParser::InvalidOption if options.target_dir.nil?
 
-        raygun = Raygun::Runner.new(options.target_dir, options.prototype_repo, options.gitlab_endpoint)
+        raygun = Raygun::Runner.new(options.target_dir, options.prototype_repo, options.gitlab_endpoint, options.ref, options.embed_as)
 
       rescue OptionParser::InvalidOption
         usage_and_exit(parser)
