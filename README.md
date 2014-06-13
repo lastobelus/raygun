@@ -1,107 +1,70 @@
-[![Gem Version](https://badge.fury.io/rb/raygun.png)](http://badge.fury.io/rb/raygun)
-<img src="https://raw.github.com/carbonfive/raygun/master/marvin.jpg" align="right"/>
+[![Gem Version](https://badge.fury.io/rb/raygun-gl.png)](http://badge.fury.io/rb/raygun-gl)
+<img src="https://raw.github.com/lastobelus/raygun-gl/master/marvin.jpg" align="right"/>
 
-# Raygun
+# Raygun GL
 
-Rails application generator that builds a new project skeleton configured with Carbon Five preferences and
-best practices baked right in. Spend less time configuring and more building cool features.
+Rails application generator that builds a new project skeleton from prototype app repos which can live either on github or a private gitlab instance.
 
-Raygun generates Rails 4 projects by copying this [sample app](https://github.com/carbonfive/raygun-rails)
-and massaging it gently into shape.
-
-Alternatively, Raygun allows you to specify your own prototype instead of the default sample app. See below
-for details.
-
-Major tools/libraries:
-
-* Rails 4.1 (rc)
-* PostgreSQL
-* Slim
-* Sass
-* Bootstrap
-* RSpec
-* Factory Girl
-* Jasmine
-* SimpleCov
-* Guard (rspec, jasmine, livereload)
-* And many tweaks, patterns and common recipes (see [raygun-rails](https://github.com/carbonfive/raygun-rails) for all the details).
-
-Raygun includes generator templates for controllers, views, and specs so that generated code follows best
-practices. For example, view generation produces bootstrap compatible markup and rspec specs use factory
-girl when appropriate.
-
-Inspired by Xavier Shay work at Square and ThoughtBot's Suspenders. Thanks!
+Raygun-gl generates Rails 4 projects by copying a sample app and massaging it gently into shape. It is a fork of https://github.com/carbonfive/raygun but does not supply an app prototype. Instead it allows you to use (your own) app prototype repos that are hosted either on github or a private gitlab instance. If you want to us Carbon Five's app prototype, raygun-gl does not provide any extra functionality over Carbon Five's original version (except for the `--embed_as` option)
 
 ## Projects Goals
 
-Raygun...
+Raygun GL...
 
 * Generates a new rails application that's ready for immediate feature development.
-* Generates an application that has best practices that apply to most projects baked in.
-* Generates an application that includes specs for all build in functionality.
-* Is a forum for discussing what should or should not be included as part of a standard stack.
+* Generates an application that has YOUR best practices that apply to most projects baked in.
 
 ## Installation
 
-    $ gem install raygun
+    $ gem install raygun-gl
 
 ## Prerequisites
 
-To generate an application, you only need the raygun gem and network connectivity.
-
-To run your new application's specs or fire up its server, you'll need to meet these requirements.
-
-* PostgreSQL 9.x with superuser 'postgres' with no password (```createuser -s postgres```)
-* PhantomJS for JavaScript testing (```brew install phantomjs```)
+To generate an application, you only need the raygun-gl gem and network connectivity.
 
 The generated app will be configured to use the ruby version that was used to invoke raygun. If you're using
 another ruby, just change the ```Gemfile``` and ```.ruby-version``` as necessary.
 
 ## Usage
 
-    $ raygun your-project
+    $ raygun-gl your-project
 
-Once your project is baked out, you can easily kick the wheels. Be sure that you have the prerequities
-covered (see above).
-
-    $ cd your-project
-    $ gem install bundler
-    $ bundle
-
-    # Prepare the database: schema and reference / sample data
-    $ rake db:setup db:sample_data
-
-    # Run the specs
-    $ rake
-
-    # Fire up the app and open it in a browser
-    $ foreman start
-    $ open http://localhost:3000
-
-## Using a Custom Project Template
+## Using  Project Template
 
 The default is to use the project at [carbonfive/raygun-rails](https://github.com/carbonfive/raygun-rails) as a
-starting point. You can use another repo as the project template with the ```-p``` command line option.
+starting point. You can use another repo as the project template with the ```-p```  and/or ```-g``` command line options.
 
-If you invoke raygun with the ```-p``` option, you can specify your own github repository.
+If you invoke raygun-gl with the ```-p``` option, you can specify your own github repository.
 
     $ raygun -p githubid/repo your-project
 
 The repository must:
 
-* Have been tagged. Raygun chooses the "greatest" tag and downloads the repository as of that tag.
 * Not have any binary files. Raygun runs a 'sed' command on all files, which will fail on binaries, such as jar files.
+
+For github repos, the repository must have been tagged. Raygun chooses the "greatest" tag and downloads the repository as of that tag -- this is the original way the Carbon Five version. For gitlab repos you can (must) supply a ref (branch or tag) with `-r`
 
 If your project template requires a minimum version of raygun, include the version in a file called
 ```.raygun-version``` at the root. Raygun will make sure it's new enough for your repo.
 
+If you want to use a project template that lives on a gitlab instance, invoke raygun-gl with the ```-g``` option or set the `GITLAB_API_ENDPOINT` environment variable to your gitlab instance url. Currently, you must also use the `-r` option to specify a ref (branch or tag). You must either set your private token in env `GITLAB_API_PRIVATE_TOKEN`,  or, if using OS X you can store it in your keychain in a generic password named `[gitlab endpoint host]-private-token`
+
+    $ raygun -g https://gitlab.mydomain.com -p gitlabid/repo -r v1.0.0 your-project
+
+## Embed As
+
+If the rails app you are generating is a part of another project (example: the backend in an Ember app), you can use the `--embed_as` option to specify what its directory should be called:
+
+    $ raygun -g https://gitlab.mydomain.com -p gitlabid/repo -r v1.0.0 -e rails /path/to/ember-project
+
+This example will generate a rails app in `/path/to/ember-project/rails`, creating `/path/to/ember-project` if it doesn't exist, and doing `git init` in `/path/to/ember-project` **IF** `/path/to/ember-projec/.git` doesn't already exist before committing the generated app.
+
 ## Internal Mechanics
 
 Raygun fetches the greatest tag from the [carbonfive/raygun-rails](https://github.com/carbonfive/raygun-rails)
-repo, unless it already has it cached in ~/.raygun, extracts the contents of the tarball, and runs a series of
-search-and-replaces on the code to customize it accordingly.
+repo, or the specified branch/tag from the specified repo, unless it already has it cached in ~/.raygun, extracts the contents of the tarball, and runs a series of search-and-replaces on the code to customize it accordingly.
 
-This approach is fast, simple, and makes raygun developement very easy. Make changes to the application
+This approach is fast, simple, and makes raygun development very easy. Make changes to the application
 prototype (which is a valid rails app) and tag them when they should be used for new applications.
 
 ## Contributing
@@ -114,10 +77,10 @@ prototype (which is a valid rails app) and tag them when they should be used for
 
 ### Development
 
-Generate an example app using your local development version of raygun:
+Generate an example app using your local development version of raygun-gl:
 
-    $ ./bin/raygun tmp/example_app
+    $ ./bin/raygun-gl tmp/example_app
 
 ## Changes
 
-[View the Change Log](https://github.com/carbonfive/raygun/tree/master/CHANGES.md)
+[View the Change Log](https://github.com/lastobelus/raygun-gl/tree/master/CHANGES.md)

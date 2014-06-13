@@ -1,3 +1,3 @@
 module Raygun
-  VERSION = "0.9.4"
+  VERSION = "0.10.1"
 end

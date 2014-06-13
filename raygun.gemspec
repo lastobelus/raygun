@@ -7,13 +7,13 @@ end
 require 'raygun/version'
 
 Gem::Specification.new do |gem|
-  gem.name          = "raygun"
+  gem.name          = "raygun-gl"
   gem.version       = Raygun::VERSION
-  gem.authors       = ["Christian Nelson", "Jonah Williams", "Jason Wadsworth"]
-  gem.email         = ["christian@carbonfive.com"]
-  gem.description   = %q{Carbon Five Rails application generator}
-  gem.summary       = %q{Generates and customizes Rails applications with Carbon Five best practices baked in.}
-  gem.homepage      = "https://github.com/carbonfive/raygun"
+  gem.authors       = ["Christian Nelson", "Jonah Williams", "Jason Wadsworth", "Michael Johnston"]
+  gem.email         = ["lastobelus@gmail.com"]
+  gem.description   = %q{Rails application generator}
+  gem.summary       = %q{Generates and customizes Rails applications from prototype repos which can live either on github or on private gitlab instances.}
+  gem.homepage      = "https://github.com/lastobelus/raygun-gl"
   gem.license       = 'MIT'
 
   gem.files         = `git ls-files`.split($/)
