@@ -7,12 +7,34 @@ Rails application generator that builds a new project skeleton from prototype ap
 
 `raygun-gl` generates Rails 4 projects by copying a sample app and massaging it gently into shape. It is a fork of https://github.com/carbonfive/raygun but does not supply an app prototype. Instead it allows you to use (your own) app prototype repos that are hosted either on **github** or a private **gitlab** instance. If you want to use Carbon Five's app prototype, `raygun-gl` does not provide any extra functionality over Carbon Five's original version (except for the `--embed_as` option)
 
+Major tools/libraries:
+
+* Rails
+* PostgreSQL
+* Slim
+* Sass
+* Bootstrap
+* RSpec
+* Factory Girl
+* Jasmine
+* SimpleCov
+* Guard (rspec, jasmine, livereload)
+* And many tweaks, patterns and common recipes (see [raygun-rails](https://github.com/carbonfive/raygun-rails) for all the details).
+
+Raygun includes generator templates for controllers, views, and specs so that generated code follows best
+practices. For example, view generation produces bootstrap compatible markup and rspec specs use factory
+girl when appropriate.
+
+Inspired by Xavier Shay work at Square and ThoughtBot's Suspenders. Thanks!
+
 ## Projects Goals
 
 `raygun-gl`...
 
 * Generates a new rails application that's ready for immediate feature development.
-* Generates an application that has YOUR best practices that apply to most projects baked in.
+* Generates an application that has best practices that apply to most projects baked in.
+* Generates an application that includes specs for all built in functionality.
+* Is a forum for discussing what should or should not be included as part of a standard stack.
 
 ## Installation
 
@@ -30,6 +52,20 @@ another ruby, just change the ```Gemfile``` and ```.ruby-version``` as necessary
     $ raygun-gl your-project
 
 ## Using  Project Template
+Once your project is baked out, you can easily kick the wheels. Be sure that you have the prerequities
+covered (see above).
+
+    $ cd your-project
+    $ ./bin/setup
+
+    # Run the specs, they should all pass
+    $ rake
+
+    # Fire up the app and open it in a browser
+    $ foreman start
+    $ open http://localhost:3000
+
+## Using a Custom Project Template
 
 The default is to use the project at [carbonfive/raygun-rails](https://github.com/carbonfive/raygun-rails) as a
 starting point. You can use another repo as the project template with the ```-p```  and/or ```-g``` command line options.
